@@ -54,3 +54,22 @@ void I2C_Write_Byte (I2C_Module Module,  uint8_t data)
 	Memory (I2C_Module0_BASE+Module*0x1000,I2CMCS)=0x07;
 	while ((Memory(I2C_Module0_BASE+Module*0x1000,I2CMCS) &(1<<0)) !=0);
 }
+uint8_t I2C_readByte(volatile I2C_Module Module)
+{
+	Memory(I2C_Module0_BASE+Module*0x1000,I2CMSA) |= (1<<0);
+	Memory(I2C_Module0_BASE+Module*0x1000, I2CMCS) = 0x07;
+	while ((Memory(I2C_Module0_BASE+Module*0x1000,I2CMCS) &(1<<0)) !=0);
+	return Memory(I2C_Module0_BASE+Module*0x1000, I2CMDR);
+}
+void I2C_writeTransaction(volatile I2C_Module Module, char* data){
+	Memory(I2C_Module0_BASE+Module*0x1000,I2CMSA) &= ~(1<<0);
+	int i=0;
+	I2C_Write_Byte(Module, data[i++]); 
+	do{
+		I2C_Write_Byte(Module, data[i]);  
+		i++;
+	}while(data[i]!=0);
+	
+	I2C_Write_Byte(Module, data[i]);  
+	for(int j =0 ; j<100 ; j++);
+}
